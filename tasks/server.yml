@@ -1,7 +1,21 @@
 ---
 
 - name: Install Graylog2 server
-  apt: name=graylog2-server state=present update_cache=yes
+  apt: name=graylog2-server state=present force=yes
+
+# this probably is needed as after deployment /spool was not writable
+- name: Ensure spool directory is writable
+  file: path={{ message_cache_spool_dir }} state=directory owner=graylog2 group=graylog2
+
+- name: Ensure spool sub-dirs exist and are writable
+  file: path={{ message_cache_spool_dir }}/{{ item }} state=directory owner=graylog2 group=graylog2
+  with_items:
+      - "input-cache"
+      - "input-cache.p"
+      - "input-cache.t"
+      - "output-cache"
+      - "output-cache.p"
+      - "output-cache.t"
 
 - name: Configure Graylog2 server
   template: src=graylog2.server.conf.j2 dest=/etc/graylog2.conf owner=graylog2 group=graylog2 mode=0644
